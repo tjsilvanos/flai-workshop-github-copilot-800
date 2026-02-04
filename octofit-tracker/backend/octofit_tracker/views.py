@@ -6,6 +6,8 @@ from .serializers import (
     UserSerializer, TeamSerializer, ActivitySerializer, 
     LeaderboardSerializer, WorkoutSerializer
 )
+from pymongo import MongoClient
+from django.conf import settings
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -23,32 +25,136 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TeamViewSet(viewsets.ModelViewSet):
-    queryset = Team.objects.all()
+    queryset = Team.objects.none()  # Empty queryset to avoid ORM issues
     serializer_class = TeamSerializer
+    
+    def get_mongo_connection(self):
+        """Get MongoDB connection"""
+        client = MongoClient('localhost', 27017)
+        db = client['octofit_db']
+        return db
+    
+    def list(self, request):
+        """Override list to fetch from MongoDB directly"""
+        try:
+            db = self.get_mongo_connection()
+            teams = list(db.teams.find())
+            
+            # Convert ObjectId to string and format data
+            for team in teams:
+                team['_id'] = str(team['_id'])
+                # Ensure members is a list
+                if 'members' not in team:
+                    team['members'] = []
+                # Add member_count
+                team['member_count'] = len(team['members'])
+            
+            return Response(teams)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to fetch teams: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def retrieve(self, request, pk=None):
+        """Override retrieve to fetch from MongoDB directly"""
+        try:
+            db = self.get_mongo_connection()
+            team = db.teams.find_one({'_id': int(pk)})
+            
+            if not team:
+                return Response(
+                    {'error': 'Team not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            team['_id'] = str(team['_id'])
+            if 'members' not in team:
+                team['members'] = []
+            team['member_count'] = len(team['members'])
+            
+            return Response(team)
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to fetch team: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def add_member(self, request, pk=None):
-        team = self.get_object()
-        user_id = request.data.get('user_id')
-        if user_id:
-            if user_id not in team.members:
-                team.members.append(user_id)
-                team.save()
-                return Response({'status': 'member added'})
-            return Response({'error': 'User already in team'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'error': 'user_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            db = self.get_mongo_connection()
+            user_id = request.data.get('user_id')
+            
+            if not user_id:
+                return Response(
+                    {'error': 'user_id required'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            team = db.teams.find_one({'_id': int(pk)})
+            if not team:
+                return Response(
+                    {'error': 'Team not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            members = team.get('members', [])
+            if user_id in members:
+                return Response(
+                    {'error': 'User already in team'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            db.teams.update_one(
+                {'_id': int(pk)},
+                {'$push': {'members': user_id}}
+            )
+            
+            return Response({'status': 'member added'})
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to add member: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def remove_member(self, request, pk=None):
-        team = self.get_object()
-        user_id = request.data.get('user_id')
-        if user_id:
-            if user_id in team.members:
-                team.members.remove(user_id)
-                team.save()
-                return Response({'status': 'member removed'})
-            return Response({'error': 'User not in team'}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'error': 'user_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            db = self.get_mongo_connection()
+            user_id = request.data.get('user_id')
+            
+            if not user_id:
+                return Response(
+                    {'error': 'user_id required'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            team = db.teams.find_one({'_id': int(pk)})
+            if not team:
+                return Response(
+                    {'error': 'Team not found'}, 
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            members = team.get('members', [])
+            if user_id not in members:
+                return Response(
+                    {'error': 'User not in team'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            db.teams.update_one(
+                {'_id': int(pk)},
+                {'$pull': {'members': user_id}}
+            )
+            
+            return Response({'status': 'member removed'})
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to remove member: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 class ActivityViewSet(viewsets.ModelViewSet):

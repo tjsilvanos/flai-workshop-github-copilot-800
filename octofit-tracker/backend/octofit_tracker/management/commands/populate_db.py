@@ -156,15 +156,17 @@ class Command(BaseCommand):
             num_activities = random.randint(5, 10)
             for i in range(num_activities):
                 days_ago = random.randint(0, 30)
-                activity_date = datetime.now() - timedelta(days=days_ago)
+                activity_datetime = datetime.now() - timedelta(days=days_ago)
+                # Store as datetime but only with date part (midnight)
+                activity_date = activity_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
                 
                 activities_data.append({
                     '_id': activity_id,
                     'user_id': user['_id'],
                     'activity_type': random.choice(activity_types),
-                    'duration_minutes': random.randint(15, 120),
+                    'duration': random.randint(15, 120),
                     'calories_burned': random.randint(100, 800),
-                    'distance_km': round(random.uniform(1, 20), 2),
+                    'distance': round(random.uniform(1, 20), 2),
                     'date': activity_date,
                     'notes': f"Great workout session #{i+1}"
                 })
@@ -236,8 +238,8 @@ class Command(BaseCommand):
         for user in users_data:
             user_activities = [a for a in activities_data if a['user_id'] == user['_id']]
             total_calories = sum(a['calories_burned'] for a in user_activities)
-            total_distance = sum(a['distance_km'] for a in user_activities)
-            total_duration = sum(a['duration_minutes'] for a in user_activities)
+            total_distance = sum(a['distance'] for a in user_activities)
+            total_duration = sum(a['duration'] for a in user_activities)
             
             # Calculate points (calories + distance * 10 + duration)
             points = total_calories + int(total_distance * 10) + total_duration
