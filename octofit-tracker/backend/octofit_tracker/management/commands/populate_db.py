@@ -51,7 +51,9 @@ class Command(BaseCommand):
                 '_id': 1,
                 'username': 'ironman',
                 'email': 'tony.stark@avengers.com',
-                'full_name': 'Tony Stark',
+                'first_name': 'Tony',
+                'last_name': 'Stark',
+                'password': 'password123',
                 'team_id': 1,
                 'created_at': datetime.now(),
                 'avatar': '🦾'
@@ -60,7 +62,9 @@ class Command(BaseCommand):
                 '_id': 2,
                 'username': 'captainamerica',
                 'email': 'steve.rogers@avengers.com',
-                'full_name': 'Steve Rogers',
+                'first_name': 'Steve',
+                'last_name': 'Rogers',
+                'password': 'password123',
                 'team_id': 1,
                 'created_at': datetime.now(),
                 'avatar': '🛡️'
@@ -69,7 +73,9 @@ class Command(BaseCommand):
                 '_id': 3,
                 'username': 'blackwidow',
                 'email': 'natasha.romanoff@avengers.com',
-                'full_name': 'Natasha Romanoff',
+                'first_name': 'Natasha',
+                'last_name': 'Romanoff',
+                'password': 'password123',
                 'team_id': 1,
                 'created_at': datetime.now(),
                 'avatar': '🕷️'
@@ -78,7 +84,9 @@ class Command(BaseCommand):
                 '_id': 4,
                 'username': 'thor',
                 'email': 'thor.odinson@asgard.com',
-                'full_name': 'Thor Odinson',
+                'first_name': 'Thor',
+                'last_name': 'Odinson',
+                'password': 'password123',
                 'team_id': 1,
                 'created_at': datetime.now(),
                 'avatar': '⚡'
@@ -87,7 +95,9 @@ class Command(BaseCommand):
                 '_id': 5,
                 'username': 'hulk',
                 'email': 'bruce.banner@avengers.com',
-                'full_name': 'Bruce Banner',
+                'first_name': 'Bruce',
+                'last_name': 'Banner',
+                'password': 'password123',
                 'team_id': 1,
                 'created_at': datetime.now(),
                 'avatar': '💚'
@@ -97,7 +107,9 @@ class Command(BaseCommand):
                 '_id': 6,
                 'username': 'superman',
                 'email': 'clark.kent@dailyplanet.com',
-                'full_name': 'Clark Kent',
+                'first_name': 'Clark',
+                'last_name': 'Kent',
+                'password': 'password123',
                 'team_id': 2,
                 'created_at': datetime.now(),
                 'avatar': '🦸'
@@ -106,7 +118,9 @@ class Command(BaseCommand):
                 '_id': 7,
                 'username': 'batman',
                 'email': 'bruce.wayne@wayneenterprises.com',
-                'full_name': 'Bruce Wayne',
+                'first_name': 'Bruce',
+                'last_name': 'Wayne',
+                'password': 'password123',
                 'team_id': 2,
                 'created_at': datetime.now(),
                 'avatar': '🦇'
@@ -115,7 +129,9 @@ class Command(BaseCommand):
                 '_id': 8,
                 'username': 'wonderwoman',
                 'email': 'diana.prince@themyscira.com',
-                'full_name': 'Diana Prince',
+                'first_name': 'Diana',
+                'last_name': 'Prince',
+                'password': 'password123',
                 'team_id': 2,
                 'created_at': datetime.now(),
                 'avatar': '⚔️'
@@ -124,7 +140,9 @@ class Command(BaseCommand):
                 '_id': 9,
                 'username': 'flash',
                 'email': 'barry.allen@starlabs.com',
-                'full_name': 'Barry Allen',
+                'first_name': 'Barry',
+                'last_name': 'Allen',
+                'password': 'password123',
                 'team_id': 2,
                 'created_at': datetime.now(),
                 'avatar': '⚡'
@@ -133,7 +151,9 @@ class Command(BaseCommand):
                 '_id': 10,
                 'username': 'aquaman',
                 'email': 'arthur.curry@atlantis.com',
-                'full_name': 'Arthur Curry',
+                'first_name': 'Arthur',
+                'last_name': 'Curry',
+                'password': 'password123',
                 'team_id': 2,
                 'created_at': datetime.now(),
                 'avatar': '🔱'
@@ -157,8 +177,8 @@ class Command(BaseCommand):
             for i in range(num_activities):
                 days_ago = random.randint(0, 30)
                 activity_datetime = datetime.now() - timedelta(days=days_ago)
-                # Store as datetime but only with date part (midnight)
-                activity_date = activity_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+                # Store as date string in YYYY-MM-DD format for consistency
+                activity_date = activity_datetime.date().isoformat()
                 
                 activities_data.append({
                     '_id': activity_id,
@@ -168,7 +188,8 @@ class Command(BaseCommand):
                     'calories_burned': random.randint(100, 800),
                     'distance': round(random.uniform(1, 20), 2),
                     'date': activity_date,
-                    'notes': f"Great workout session #{i+1}"
+                    'notes': f"Great workout session #{i+1}",
+                    'created_at': datetime.now()
                 })
                 activity_id += 1
         
@@ -234,6 +255,9 @@ class Command(BaseCommand):
         # Create Leaderboard entries
         leaderboard_data = []
         
+        # Get team names for lookup
+        team_names = {1: 'Team Marvel', 2: 'Team DC'}
+        
         # Calculate total points for each user based on activities
         for user in users_data:
             user_activities = [a for a in activities_data if a['user_id'] == user['_id']]
@@ -241,24 +265,22 @@ class Command(BaseCommand):
             total_distance = sum(a['distance'] for a in user_activities)
             total_duration = sum(a['duration'] for a in user_activities)
             
-            # Calculate points (calories + distance * 10 + duration)
-            points = total_calories + int(total_distance * 10) + total_duration
-            
             leaderboard_data.append({
                 '_id': user['_id'],
                 'user_id': user['_id'],
                 'username': user['username'],
                 'team_id': user['team_id'],
-                'total_points': points,
+                'team_name': team_names.get(user['team_id'], 'No Team'),
                 'total_activities': len(user_activities),
                 'total_calories': total_calories,
-                'total_distance_km': round(total_distance, 2),
-                'total_duration_minutes': total_duration,
-                'last_updated': datetime.now()
+                'total_distance': round(total_distance, 2),
+                'total_duration': total_duration,
+                'rank': 0,  # Will be updated below
+                'updated_at': datetime.now()
             })
         
-        # Sort by points descending
-        leaderboard_data.sort(key=lambda x: x['total_points'], reverse=True)
+        # Sort by total_calories descending to match model ordering
+        leaderboard_data.sort(key=lambda x: x['total_calories'], reverse=True)
         
         # Add rank
         for rank, entry in enumerate(leaderboard_data, 1):

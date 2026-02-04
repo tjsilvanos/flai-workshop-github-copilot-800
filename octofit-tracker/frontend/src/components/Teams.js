@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Modal, Form, Alert, Spinner, Badge, ListGroup } from 'react-bootstrap';
-import apiService from '../services/api';
+import { apiService } from '../services/api';
 
 function Teams() {
   const [teams, setTeams] = useState([]);
@@ -22,15 +22,39 @@ function Teams() {
   const fetchTeamsAndUsers = async () => {
     try {
       setLoading(true);
+      const codespace = process.env.REACT_APP_CODESPACE_NAME || process.env.CODESPACE_NAME;
+      const teamsURL = codespace 
+        ? `https://${codespace}-8000.app.github.dev/api/teams/`
+        : 'http://localhost:8000/api/teams/';
+      const usersURL = codespace 
+        ? `https://${codespace}-8000.app.github.dev/api/users/`
+        : 'http://localhost:8000/api/users/';
+      
+      console.log('Fetching teams from:', teamsURL);
+      console.log('Fetching users from:', usersURL);
+      
       const [teamsResponse, usersResponse] = await Promise.all([
         apiService.getTeams(),
         apiService.getUsers()
       ]);
-      setTeams(teamsResponse.data);
-      setUsers(usersResponse.data);
+      
+      console.log('Teams API response:', teamsResponse);
+      console.log('Teams data:', teamsResponse.data);
+      console.log('Users API response:', usersResponse);
+      console.log('Users data:', usersResponse.data);
+      
+      // Handle both paginated (.results) and plain array responses
+      const teamsData = teamsResponse.data.results || teamsResponse.data;
+      const usersData = usersResponse.data.results || usersResponse.data;
+      console.log('Processed teams data:', teamsData);
+      console.log('Processed users data:', usersData);
+      
+      setTeams(Array.isArray(teamsData) ? teamsData : []);
+      setUsers(Array.isArray(usersData) ? usersData : []);
       setError(null);
     } catch (err) {
       console.error('Error fetching data:', err);
+      console.error('Error details:', err.response?.data);
       setError('Failed to load teams. Please try again later.');
     } finally {
       setLoading(false);
@@ -99,7 +123,7 @@ function Teams() {
   };
 
   const getUsersByTeam = (teamId) => {
-    return users.filter(user => user.team_id === teamId);
+    return users.filter(user => String(user.team_id) === String(teamId));
   };
 
   const getTeamAvatar = (teamName) => {
@@ -125,7 +149,7 @@ function Teams() {
     <Container>
       <div className="main-content">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>Teams</h1>
+          <h1>🏆 Teams</h1>
           <Button variant="success" onClick={() => handleShowModal()}>
             + Create Team
           </Button>

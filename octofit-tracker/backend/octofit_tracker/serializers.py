@@ -38,7 +38,7 @@ class LeaderboardSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Leaderboard
-        fields = ['_id', 'user_id', 'username', 'total_activities', 'total_calories', 'total_duration', 'total_distance', 'rank', 'updated_at']
+        fields = ['_id', 'user_id', 'username', 'team_id', 'team_name', 'total_activities', 'total_calories', 'total_duration', 'total_distance', 'rank', 'updated_at']
 
 
 class WorkoutSerializer(serializers.ModelSerializer):

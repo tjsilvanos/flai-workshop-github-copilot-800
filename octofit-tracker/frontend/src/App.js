@@ -1,11 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Container, Navbar, Nav } from 'react-bootstrap';
+import { Container, Navbar, Nav, Row, Col, Card, Button, Table, Badge } from 'react-bootstrap';
 import octofitLogo from './octofitapp-small.png';
 import './App.css';
 import Users from './components/Users';
 import Activities from './components/Activities';
 import Teams from './components/Teams';
+import Leaderboard from './components/Leaderboard';
+import Workouts from './components/Workouts';
 
 function NavigationBar() {
   const location = useLocation();
@@ -45,52 +47,84 @@ function Dashboard() {
   return (
     <Container>
       <div className="main-content">
-        <h1>Welcome to OctoFit Tracker!</h1>
+        <h1>Welcome to OctoFit Tracker! 🎯</h1>
         <p className="lead">Track your fitness activities, compete with your team, and achieve your goals!</p>
         
-        <div className="row mt-5">
-          <div className="col-md-4 mb-4">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="mb-0">Track Activities</h5>
-              </div>
-              <div className="card-body">
-                <p className="card-text">Log your workouts, runs, and fitness activities with ease.</p>
-                <Link to="/activities" className="btn btn-primary">Get Started</Link>
-              </div>
-            </div>
-          </div>
+        <Row className="mt-5">
+          <Col md={6} lg={3} className="mb-4">
+            <Link to="/users" style={{ textDecoration: 'none' }}>
+              <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }}>
+                <Card.Header className="bg-info text-white">
+                  <h5 className="mb-0">👥 Users</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text>View and manage user profiles and fitness statistics.</Card.Text>
+                </Card.Body>
+              </Card>
+            </Link>
+          </Col>
+
+          <Col md={6} lg={3} className="mb-4">
+            <Link to="/activities" style={{ textDecoration: 'none' }}>
+              <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }}>
+                <Card.Header className="bg-primary text-white">
+                  <h5 className="mb-0">🏃 Activities</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text>Log your workouts, runs, and fitness activities with ease.</Card.Text>
+                </Card.Body>
+              </Card>
+            </Link>
+          </Col>
           
-          <div className="col-md-4 mb-4">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="mb-0">Join Teams</h5>
-              </div>
-              <div className="card-body">
-                <p className="card-text">Create or join teams and compete together for fitness glory!</p>
-                <Link to="/teams" className="btn btn-success">View Teams</Link>
-              </div>
-            </div>
-          </div>
+          <Col md={6} lg={3} className="mb-4">
+            <Link to="/teams" style={{ textDecoration: 'none' }}>
+              <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }}>
+                <Card.Header className="bg-success text-white">
+                  <h5 className="mb-0">🏆 Teams</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text>Create or join teams and compete together for fitness glory!</Card.Text>
+                </Card.Body>
+              </Card>
+            </Link>
+          </Col>
           
-          <div className="col-md-4 mb-4">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="mb-0">Leaderboard</h5>
-              </div>
-              <div className="card-body">
-                <p className="card-text">Check your ranking and see how you stack up against others!</p>
-                <Link to="/leaderboard" className="btn btn-warning">View Rankings</Link>
-              </div>
-            </div>
-          </div>
-        </div>
+          <Col md={6} lg={3} className="mb-4">
+            <Link to="/leaderboard" style={{ textDecoration: 'none' }}>
+              <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }}>
+                <Card.Header className="bg-warning text-dark">
+                  <h5 className="mb-0">🏅 Leaderboard</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text>Check your ranking and see how you stack up against others!</Card.Text>
+                </Card.Body>
+              </Card>
+            </Link>
+          </Col>
+        </Row>
+
+        {/* Workouts Card */}
+        <Row className="mt-4">
+          <Col md={12} className="mb-4">
+            <Link to="/workouts" style={{ textDecoration: 'none' }}>
+              <Card className="shadow-sm" style={{ cursor: 'pointer' }}>
+                <Card.Header className="bg-gradient">
+                  <h5 className="mb-0 text-white">💪 Workout Plans</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Card.Text>Discover personalized workout suggestions tailored to your fitness goals and level!</Card.Text>
+                </Card.Body>
+              </Card>
+            </Link>
+          </Col>
+        </Row>
 
         {/* Sample Table to Showcase Styling */}
         <div className="mt-5">
           <h2>Recent Activities</h2>
-          <table className="table table-striped table-hover">
-            <thead>
+          <Table striped bordered hover responsive className="table mt-4">
+            <thead className="table-dark">
               <tr>
                 <th>Activity</th>
                 <th>Type</th>
@@ -103,48 +137,48 @@ function Dashboard() {
             <tbody>
               <tr>
                 <td>Morning Run</td>
-                <td><span className="badge bg-primary">Running</span></td>
+                <td><Badge bg="primary">Running</Badge></td>
                 <td>45 min</td>
                 <td>450</td>
                 <td>2026-02-04</td>
                 <td>
                   <div className="btn-group">
-                    <button className="btn btn-sm btn-info">View</button>
-                    <button className="btn btn-sm btn-warning">Edit</button>
-                    <button className="btn btn-sm btn-danger">Delete</button>
+                    <Button size="sm" variant="info">View</Button>
+                    <Button size="sm" variant="warning">Edit</Button>
+                    <Button size="sm" variant="danger">Delete</Button>
                   </div>
                 </td>
               </tr>
               <tr>
                 <td>Strength Training</td>
-                <td><span className="badge bg-success">Weights</span></td>
+                <td><Badge bg="success">Weights</Badge></td>
                 <td>60 min</td>
                 <td>300</td>
                 <td>2026-02-03</td>
                 <td>
                   <div className="btn-group">
-                    <button className="btn btn-sm btn-info">View</button>
-                    <button className="btn btn-sm btn-warning">Edit</button>
-                    <button className="btn btn-sm btn-danger">Delete</button>
+                    <Button size="sm" variant="info">View</Button>
+                    <Button size="sm" variant="warning">Edit</Button>
+                    <Button size="sm" variant="danger">Delete</Button>
                   </div>
                 </td>
               </tr>
               <tr>
                 <td>Evening Yoga</td>
-                <td><span className="badge bg-secondary">Yoga</span></td>
+                <td><Badge bg="secondary">Yoga</Badge></td>
                 <td>30 min</td>
                 <td>150</td>
                 <td>2026-02-02</td>
                 <td>
                   <div className="btn-group">
-                    <button className="btn btn-sm btn-info">View</button>
-                    <button className="btn btn-sm btn-warning">Edit</button>
-                    <button className="btn btn-sm btn-danger">Delete</button>
+                    <Button size="sm" variant="info">View</Button>
+                    <Button size="sm" variant="warning">Edit</Button>
+                    <Button size="sm" variant="danger">Delete</Button>
                   </div>
                 </td>
               </tr>
             </tbody>
-          </table>
+          </Table>
         </div>
       </div>
     </Container>
@@ -162,8 +196,8 @@ function App() {
           <Route path="/users" element={<Users />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/teams" element={<Teams />} />
-          <Route path="/leaderboard" element={<div className="container"><div className="main-content"><h1>Leaderboard</h1><p>Leaderboard page coming soon!</p></div></div>} />
-          <Route path="/workouts" element={<div className="container"><div className="main-content"><h1>Workouts</h1><p>Workouts page coming soon!</p></div></div>} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/workouts" element={<Workouts />} />
         </Routes>
 
         {/* Footer */}

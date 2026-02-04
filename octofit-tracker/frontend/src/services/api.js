@@ -4,13 +4,18 @@ import axios from 'axios';
 const getBaseURL = () => {
   const codespace = process.env.REACT_APP_CODESPACE_NAME || process.env.CODESPACE_NAME;
   if (codespace) {
+    console.log('Using Codespace URL with REACT_APP_CODESPACE_NAME:', codespace);
     return `https://${codespace}-8000.app.github.dev/api`;
   }
+  console.log('Using localhost URL');
   return 'http://localhost:8000/api';
 };
 
+const baseURL = getBaseURL();
+console.log('API Base URL:', baseURL);
+
 const api = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

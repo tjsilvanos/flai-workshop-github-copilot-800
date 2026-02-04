@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Modal, Form, Alert, Spinner } from 'react-bootstrap';
-import apiService from '../services/api';
+import { apiService } from '../services/api';
 
 function Activities() {
   const [activities, setActivities] = useState([]);
@@ -25,11 +25,26 @@ function Activities() {
   const fetchActivities = async () => {
     try {
       setLoading(true);
+      const codespace = process.env.REACT_APP_CODESPACE_NAME || process.env.CODESPACE_NAME;
+      const baseURL = codespace 
+        ? `https://${codespace}-8000.app.github.dev/api/activities/`
+        : 'http://localhost:8000/api/activities/';
+      
+      console.log('Fetching activities from:', baseURL);
+      
       const response = await apiService.getActivities();
-      setActivities(response.data);
+      console.log('Activities API response:', response);
+      console.log('Activities data:', response.data);
+      
+      // Handle both paginated (.results) and plain array responses
+      const data = response.data.results || response.data;
+      console.log('Processed activities data:', data);
+      
+      setActivities(Array.isArray(data) ? data : []);
       setError(null);
     } catch (err) {
       console.error('Error fetching activities:', err);
+      console.error('Error details:', err.response?.data);
       setError('Failed to load activities. Please try again later.');
     } finally {
       setLoading(false);
@@ -158,7 +173,7 @@ function Activities() {
     <Container>
       <div className="main-content">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h1>Activities</h1>
+          <h1>🏃 Activities</h1>
           <Button variant="success" onClick={() => handleShowModal()}>
             + Add Activity
           </Button>
@@ -171,8 +186,8 @@ function Activities() {
             No activities found. Click "Add Activity" to create your first activity!
           </Alert>
         ) : (
-          <Table striped bordered hover responsive>
-            <thead>
+          <Table striped bordered hover responsive className="table mt-4">
+            <thead className="table-dark">
               <tr>
                 <th>Date</th>
                 <th>Activity Type</th>
@@ -221,7 +236,7 @@ function Activities() {
         )}
 
         {/* Add/Edit Activity Modal */}
-        <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal show={showModal} onHide={handleCloseModal} size="lg">
           <Modal.Header closeButton>
             <Modal.Title>{editingActivity ? 'Edit Activity' : 'Add New Activity'}</Modal.Title>
           </Modal.Header>

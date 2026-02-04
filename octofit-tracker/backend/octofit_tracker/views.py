@@ -14,6 +14,32 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
+    def update(self, request, *args, **kwargs):
+        """Custom update method to handle partial updates and team changes"""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        # If team_id is being changed, verify the team exists
+        if 'team_id' in request.data and request.data['team_id']:
+            try:
+                team = Team.objects.get(_id=request.data['team_id'])
+            except Team.DoesNotExist:
+                return Response(
+                    {'error': 'Team not found'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        """Handle PATCH requests"""
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+    
     @action(detail=False, methods=['get'])
     def by_username(self, request):
         username = request.query_params.get('username', None)
@@ -204,10 +230,23 @@ class LeaderboardViewSet(viewsets.ModelViewSet):
         total_duration = sum(activity.duration for activity in activities)
         total_distance = sum(activity.distance or 0 for activity in activities)
         
-        # Get username
+        # Get username and team info
         try:
             user = User.objects.get(_id=user_id)
             username = user.username
+            team_id = user.team_id
+            
+            # Get team name if user has a team
+            team_name = None
+            if team_id:
+                try:
+                    client = MongoClient('localhost', 27017)
+                    db = client['octofit_db']
+                    team = db.teams.find_one({'_id': int(team_id)})
+                    if team:
+                        team_name = team.get('name')
+                except Exception:
+                    pass
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
@@ -216,6 +255,8 @@ class LeaderboardViewSet(viewsets.ModelViewSet):
             user_id=user_id,
             defaults={
                 'username': username,
+                'team_id': team_id,
+                'team_name': team_name,
                 'total_activities': total_activities,
                 'total_calories': total_calories,
                 'total_duration': total_duration,

@@ -57,6 +57,8 @@ class Leaderboard(models.Model):
     _id = models.CharField(max_length=24, primary_key=True, default=lambda: str(ObjectId()))
     user_id = models.CharField(max_length=24, unique=True)
     username = models.CharField(max_length=100)
+    team_id = models.CharField(max_length=24, null=True, blank=True)
+    team_name = models.CharField(max_length=100, null=True, blank=True)
     total_activities = models.IntegerField(default=0)
     total_calories = models.IntegerField(default=0)
     total_duration = models.IntegerField(default=0)  # in minutes
